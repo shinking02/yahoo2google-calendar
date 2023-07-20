@@ -1,18 +1,21 @@
-import { createTheme } from '@mui/material/styles';
-import { red } from '@mui/material/colors';
+import { createTheme } from "@mui/material/styles";
 
 const theme = createTheme({
     palette: {
-        primary: {
-             main: '#556cd6',
+        background: {
+            default: "#f5f5f7",
+            paper: "#fff",
         },
-        secondary: {
-            main: '#19857b',
+        text: {
+            primary: "#173A5E",
+            secondary: "#46505A",
         },
-        error: {
-            main: red.A400,
-        },
-    },
+      },
+    typography: {
+        button: {
+            textTransform: "none"
+        }
+    }
 });
 
 export default theme;
