@@ -1,12 +1,10 @@
 import Layout from "./components/Layout";
-import LoginBox from "./components/LoginBox";
-import ImportBox from "./components/ImportBox";
+import Top from "./pages/Top"
 
 export default function App() {
     return (
         <Layout>
-            <LoginBox />
-            <ImportBox />
+            <Top />
         </Layout>
     );
 }
