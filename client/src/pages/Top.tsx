@@ -5,6 +5,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import React, { useEffect } from "react";
 import dayjs from "dayjs";
 import { post } from "../lib/api";
+import * as apiType from "../../../types/apiTypes"
 
 export default function() {
     const [fromDate, setFromDate] = React.useState<dayjs.Dayjs | null>(dayjs().subtract(1, "month"));
@@ -12,6 +13,7 @@ export default function() {
     const [collectDate, setCollectDate] = React.useState<boolean>(false);
     const [isLogin, setIsLogin] = React.useState<boolean>(false);
     const [importing, setImporting] = React.useState<boolean>(false);
+    const [importError, setImportError] = React.useState<string>("");
     useEffect(() => {
         const existAccessToken = document.cookie.includes("access_token");
         setIsLogin(existAccessToken);
@@ -19,8 +21,6 @@ export default function() {
     },[]);
     useEffect(() => {checkDate()}, [fromDate, toDate]);
     const checkDate = () => {
-        console.log(fromDate?.format("YYYYMMDD"))
-        console.log(toDate?.format("YYYYMMDD"))
         if(toDate && fromDate && toDate.isAfter(fromDate)) {
             setCollectDate(true);
         } else {
@@ -29,8 +29,11 @@ export default function() {
     };
     const importHandler = async() => {
         setImporting(true);
-        const calData = await post("/importCal", { from: fromDate, to: toDate });
-        localStorage.setItem("yahoo-calendar-data", calData);
+        const response = await post("/importCal", { from: fromDate, to: toDate }) as apiType.ImportCalResponse;
+        localStorage.setItem("yahoo-calendar-data", JSON.stringify(response));
+        if(response.error) {
+            setImportError(response.error);
+        }
         setImporting(false);
     }
     return (
@@ -91,6 +94,9 @@ export default function() {
                 >
                     インポート
                 </LoadingButton>
+                {importError && 
+                    <Alert severity="error" sx={{ mt: 1 }}>{importError}</Alert>                
+                }
             </Box>
         </>
     );
