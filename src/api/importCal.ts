@@ -3,6 +3,7 @@ import { Builder, By, Capabilities, Key, until, WebDriver, WebElement } from "se
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import * as apiTypes from "../../types/apiTypes";
+import { HotModuleReplacementPlugin } from "webpack";
 
 export default async function importCal(req: express.Request, res: express.Response) {
     const { from, to } = req.body;
@@ -40,9 +41,12 @@ export default async function importCal(req: express.Request, res: express.Respo
                     const md = await row.findElement(By.className("row-date")).getText();
                     const dateArr = md.split(/\s|\//);
                     startDate = dateArr[0].padStart(2, '0') + dateArr[1].padStart(2, '0');
+                    const startDayjs = dayjs(pageDate.year().toString() + startDate, "YYYYMMDD");
+                    if(startDayjs.isAfter(to) || dayjs(from).isAfter(startDate)) { //日付単位の範囲はここで制限
+                        continue;
+                    }
                 } else {
                     const dateText = await row.findElement(By.className("list-event-date")).getText();
-                    //日付が範囲内か確認する処理ここで　
                     const name = await row.findElement(By.className("list-event-title")).getText();
                     const place = await row.findElement(By.className("list-event-place")).getText();
                     const calElment = await row.findElement(By.className("list-event-cal"));
@@ -60,8 +64,33 @@ export default async function importCal(req: express.Request, res: express.Respo
                         });
                         continue;
                     }
-                    const start = pageDate.year().toString() + dateText.slice(0, 2) + dateText.slice(3, 5);
-                    console.log(start);
+                    const eventStart = pageDate.year().toString() + startDate + dateText.slice(0, 2) + dateText.slice(3, 5);
+                    const eventEnd = (() => {
+                        const timeRegex = /(\d{2}:\d{2})/g;
+                        const timeMatches = dateText.slice(5).match(timeRegex);
+                        if(dateText.length > 16) {
+                            const dateRegex = /(\d{1,2}\/\d{1,2})/g;
+                            const dateMatches = dateText.match(dateRegex);
+                            if(dateMatches && dateMatches.length && timeMatches && timeMatches.length) {
+                                const [month, day] = dateMatches[0].split("/");
+                                const [hour, minute] = timeMatches[0].split(":")
+                                const endDate = month.padStart(2, "0") + day.padStart(2, "0");
+                                const endString = pageDate.year().toString() + endDate + hour + minute;
+                                if(Number(endString) - Number(eventStart)) {
+                                    return pageDate.add(1, "year").year().toString() + endDate + hour + minute;
+                                }
+                                return endString;
+                            }
+                        }
+                        if(timeMatches && timeMatches.length) {
+                            const [hour, minute] = timeMatches[0].split(":")
+                            return pageDate.year() + startDate + hour + minute;
+                        }
+                        return "";
+                    })();
+                    console.log("========================");
+                    console.log(eventStart);
+                    console.log(eventEnd);
                 }
             }
             await prevButton.click();
