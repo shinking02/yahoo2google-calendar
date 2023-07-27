@@ -54,7 +54,7 @@ export default async function importCal(req: express.Request, res: express.Respo
                     const calText = await calElment.getText();
                     if(dateText.includes("終日")) {
                         calData.push({
-                            start: "",
+                            start: pageDate.year().toString() + startDate + "----",
                             end: "",
                             allDay: true,
                             name,
@@ -76,7 +76,7 @@ export default async function importCal(req: express.Request, res: express.Respo
                                 const [hour, minute] = timeMatches[0].split(":")
                                 const endDate = month.padStart(2, "0") + day.padStart(2, "0");
                                 const endString = pageDate.year().toString() + endDate + hour + minute;
-                                if(Number(endString) - Number(eventStart)) {
+                                if(Number(endString) - Number(eventStart) < 0) {
                                     return pageDate.add(1, "year").year().toString() + endDate + hour + minute;
                                 }
                                 return endString;
@@ -88,9 +88,15 @@ export default async function importCal(req: express.Request, res: express.Respo
                         }
                         return "";
                     })();
-                    console.log("========================");
-                    console.log(eventStart);
-                    console.log(eventEnd);
+                    calData.push({
+                        start: eventStart,
+                        end: eventEnd,
+                        place,
+                        name,
+                        calendar: calText,
+                        color: calColor,
+                        allDay: false
+                    });
                 }
             }
             await prevButton.click();
