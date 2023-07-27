@@ -71,13 +71,11 @@ export default function() {
                         <DesktopDatePicker
                             label="From" 
                             value={fromDate}
-                            disableFuture
                             onChange={(v) => {setFromDate(v)}}
                         />
                         <DesktopDatePicker
                             label="To" 
                             value={toDate}
-                            disableFuture
                             onChange={(v) => {setToDate(v)}}
                         />
                     </LocalizationProvider>

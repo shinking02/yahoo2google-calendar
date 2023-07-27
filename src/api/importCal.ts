@@ -3,7 +3,6 @@ import { Builder, By, Capabilities, Key, until, WebDriver, WebElement } from "se
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import * as apiTypes from "../../types/apiTypes";
-import { HotModuleReplacementPlugin } from "webpack";
 
 export default async function importCal(req: express.Request, res: express.Response) {
     const { from, to } = req.body;
@@ -20,11 +19,16 @@ export default async function importCal(req: express.Request, res: express.Respo
         await driver.get("https://login.yahoo.co.jp/config/login?.src=yc&.done=https%3A%2F%2Fcalendar.yahoo.co.jp%2F");
         const listButton = await driver.wait(until.elementLocated(By.className("js-ToolBar__viewList--list")), 120000);
         await listButton.click();
-        const prevButton = await driver.findElement(By.className("bc-button-prev"));
         const now = dayjs();
-        const clickCount = (now.year() - dayjs(from).year()) * 12 + now.month() - dayjs(from).month();
+        const nextClickCount = (dayjs(to).year() - now.year()) * 12 + dayjs(to).month() - now.month();
+        const prevClickCount = (now.year() - dayjs(from).year()) * 12 + now.month() - dayjs(from).month() + nextClickCount;
         const calData: apiTypes.Event[] = [];
-        for(let i = 0; i < clickCount + 1; i++) {
+        for(let i = 0; i < nextClickCount; i++) {
+            const nextButton = await driver.findElement(By.className("bc-button-next"));
+            await nextButton.click();
+        }
+        for(let i = 0; i < prevClickCount + 1; i++) {
+            const prevButton = await driver.findElement(By.className("bc-button-prev"));
             const ym = await driver.findElement(By.className("month")).getText();
             const mIndex = ym.indexOf("月");
             const pageDate = dayjs(ym.slice(0, mIndex + 1), "YYYY年M月");
