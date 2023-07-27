@@ -14,6 +14,7 @@ export default async function importCal(req: express.Request, res: express.Respo
         w3c: false
     });
     const driver: WebDriver = await new Builder().withCapabilities(capabilities).build();
+    await driver.manage().setTimeouts({implicit: 2000});
     dayjs.extend(customParseFormat);
     try {
         await driver.get("https://login.yahoo.co.jp/config/login?.src=yc&.done=https%3A%2F%2Fcalendar.yahoo.co.jp%2F");
@@ -36,8 +37,8 @@ export default async function importCal(req: express.Request, res: express.Respo
                 await prevButton.click();
                 continue;
             }
-            const tBody = await driver.findElement(By.className("list-tbody"));
-            const rows = await tBody.findElements(By.className("list-row"));
+            await driver.sleep(1000); //rowがすべて表示されていない場合があるのでsleepですべて表示されるまで待機
+            const rows = await driver.findElements(By.css(".list-table.list-row"));
             let startDate: string = ""; // MMDD
             for(const row of rows) {
                 const className = await row.getAttribute("class");
