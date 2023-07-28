@@ -3,12 +3,9 @@ import { Builder, By, Capabilities, Key, until, WebDriver, WebElement } from "se
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import * as apiTypes from "../../types/apiTypes";
-import { google } from "googleapis";
 
 export default async function importCal(req: express.Request, res: express.Response) {
     const { from, to } = req.body;
-    const auth = res.locals.oauthClient;
-    const calendar = google.calendar({ version: "v3", auth});
     const capabilities: Capabilities = Capabilities.chrome();
     capabilities.set("chromeOptions", {
         args: [
@@ -26,6 +23,7 @@ export default async function importCal(req: express.Request, res: express.Respo
         const nextClickCount = (dayjs(to).year() - now.year()) * 12 + dayjs(to).month() - now.month();
         const prevClickCount = (now.year() - dayjs(from).year()) * 12 + now.month() - dayjs(from).month() + nextClickCount;
         const calData: apiTypes.Event[] = [];
+        const calendars: { [name: string]: apiTypes.YahooCal } = {};
         for(let i = 0; i < nextClickCount; i++) {
             const nextButton = await driver.findElement(By.className("bc-button-next"));
             await nextButton.click();
@@ -57,8 +55,17 @@ export default async function importCal(req: express.Request, res: express.Respo
                     const name = await row.findElement(By.className("list-event-title")).getText();
                     const place = await row.findElement(By.className("list-event-place")).getText();
                     const calElment = await row.findElement(By.className("list-event-cal"));
-                    const calColor = await calElment.findElement(By.className("color-border")).getCssValue("border-left-color");
                     const calText = await calElment.getText();
+                    if(!calendars[calText]) {
+                        const calColor = await calElment.findElement(By.className("color-border")).getCssValue("border-left-color");
+                        calendars[calText] = {
+                            name: calText,
+                            color: calColor,
+                            count: 1
+                        }
+                    } else {
+                        calendars[calText].count++;
+                    }
                     if(dateText.includes("終日")) {
                         calData.push({
                             start: pageDate.year().toString() + startDate + "----",
@@ -67,7 +74,6 @@ export default async function importCal(req: express.Request, res: express.Respo
                             name,
                             place,
                             calendar: calText,
-                            color: calColor
                         });
                         continue;
                     }
@@ -101,7 +107,6 @@ export default async function importCal(req: express.Request, res: express.Respo
                         place,
                         name,
                         calendar: calText,
-                        color: calColor,
                         allDay: false
                     });
                 }
@@ -109,25 +114,16 @@ export default async function importCal(req: express.Request, res: express.Respo
             await prevButton.click();
         }
         await driver.close();
-        const googleCalResponse = await calendar.calendarList.list();
-        const googleCal: apiTypes.GoogleCal[] = [];
-        googleCalResponse.data.items?.forEach((c) => {
-            googleCal.push({
-                name: c.summary || "",
-                id: c.id || ""
-            });
-        });
         res.json({
             error: "",
             events: calData,
-            googleCal
+            calList: Object.values(calendars)
         });
     } catch(error) {
         console.log(error);
         res.json({
             error: "エラーが発生しました",
             events: [],
-            googleCal: []
         })
     }
 }

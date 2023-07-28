@@ -1,4 +1,4 @@
-import {  Box, Alert } from "@mui/material";
+import {  Box, Alert, FormGroup, FormControlLabel, Checkbox } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -14,6 +14,7 @@ export default function() {
     const [isLogin, setIsLogin] = React.useState<boolean>(false);
     const [importing, setImporting] = React.useState<boolean>(false);
     const [calResponse, setCalResponse] = React.useState<apiType.ImportCalResponse | null>(null);
+    const [selectedCalendars, setSelectedCarendars] = React.useState<string[]>([]);
     useEffect(() => {
         const existAccessToken = document.cookie.includes("access_token");
         setIsLogin(existAccessToken);
@@ -99,13 +100,43 @@ export default function() {
             </Box>
             {calResponse && calResponse.events && calResponse.events.length > 0 &&
                 <>
-                    <Box sx={{ color: "text.secondary", fontSize: 20, fontWeight: "bold" }}>エクスポート</Box>
+                    <Box sx={{ color: "text.secondary", fontSize: 20, fontWeight: "bold", mt: 2}}>エクスポート</Box>
                     <Box sx={{
-                        width: 480,
+                        width: 380,
                         mx: "auto",
                         display: "flex",
                         flexDirection: "column",
                     }}>
+                        <FormGroup>
+                            {calResponse.calList.map(cal => {
+                                return (
+                                    <FormControlLabel
+                                        key={cal.name}
+                                        control={
+                                            <Checkbox
+                                                checked={selectedCalendars.includes(cal.name)}
+                                                onChange={() => {
+                                                    const newSelectedCalendars = selectedCalendars.includes(cal.name)
+                                                        ? selectedCalendars.filter((name) => name !== cal.name)
+                                                        : [...selectedCalendars, cal.name]
+                                                    setSelectedCarendars(newSelectedCalendars);
+                                                }}
+                                            />
+                                        }
+                                        label={`${cal.name} (${cal.count}件)`}
+                                    />
+                                )
+                            })}
+                        </FormGroup>
+                        <LoadingButton
+                            variant="outlined"
+                            sx={{ my: 1, mx: "auto", width: 160 }}
+                            onClick={() => {
+                                console.log(selectedCalendars)
+                            }}
+                        >
+                            エクスポート
+                        </LoadingButton>
                     </Box>
                 </>
             }

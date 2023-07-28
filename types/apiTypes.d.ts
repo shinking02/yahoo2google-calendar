@@ -1,7 +1,7 @@
 export interface ImportCalResponse {
     error: string,
     events: Event[],
-    googleCal: GoogleCal[]
+    calList: YahooCal[]
 }
 
 export interface Event {
@@ -11,10 +11,10 @@ export interface Event {
     name: string,
     place: string,
     calendar: string,
-    color: string
 }
 
-export interface GoogleCal {
+export interface YahooCal {
     name: string,
-    id: string
+    color: string,
+    count: number
 }
