@@ -3,9 +3,12 @@ import { Builder, By, Capabilities, Key, until, WebDriver, WebElement } from "se
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import * as apiTypes from "../../types/apiTypes";
+import { google } from "googleapis";
 
 export default async function importCal(req: express.Request, res: express.Response) {
     const { from, to } = req.body;
+    const auth = res.locals.oauthClient;
+    const calendar = google.calendar({ version: "v3", auth});
     const capabilities: Capabilities = Capabilities.chrome();
     capabilities.set("chromeOptions", {
         args: [
@@ -14,7 +17,6 @@ export default async function importCal(req: express.Request, res: express.Respo
         w3c: false
     });
     const driver: WebDriver = await new Builder().withCapabilities(capabilities).build();
-    await driver.manage().setTimeouts({implicit: 2000});
     dayjs.extend(customParseFormat);
     try {
         await driver.get("https://login.yahoo.co.jp/config/login?.src=yc&.done=https%3A%2F%2Fcalendar.yahoo.co.jp%2F");
@@ -37,7 +39,7 @@ export default async function importCal(req: express.Request, res: express.Respo
                 await prevButton.click();
                 continue;
             }
-            await driver.sleep(1000); //rowがすべて表示されていない場合があるのでsleepですべて表示されるまで待機
+            await driver.sleep(1000); //list-rowが全行表示されていない場合があるのでsleepで待機
             const rows = await driver.findElements(By.css(".list-table.list-row"));
             let startDate: string = ""; // MMDD
             for(const row of rows) {
@@ -107,11 +109,25 @@ export default async function importCal(req: express.Request, res: express.Respo
             await prevButton.click();
         }
         await driver.close();
-        res.json(calData);
+        const googleCalResponse = await calendar.calendarList.list();
+        const googleCal: apiTypes.GoogleCal[] = [];
+        googleCalResponse.data.items?.forEach((c) => {
+            googleCal.push({
+                name: c.summary || "",
+                id: c.id || ""
+            });
+        });
+        res.json({
+            error: "",
+            events: calData,
+            googleCal
+        });
     } catch(error) {
         console.log(error);
         res.json({
-            error: "seleniumでエラーが発生しました"
+            error: "エラーが発生しました",
+            events: [],
+            googleCal: []
         })
     }
 }

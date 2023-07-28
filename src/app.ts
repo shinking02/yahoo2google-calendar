@@ -4,6 +4,7 @@ import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { google } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -33,13 +34,25 @@ app.get("/auth/callback", async(req: express.Request, res: express.Response) => 
     const code = req.query.code as string;
     const tokens = (await oauth2Client.getToken(code)).tokens;
     oauth2Client.setCredentials(tokens);
-    res.cookie("access_token", await oauth2Client.getAccessToken(), {
+    res.cookie("access_token", tokens.access_token, {
+        maxAge: 36000000,
+        httpOnly: false
+    });
+    res.cookie("refresh_token", tokens.refresh_token, {
         maxAge: 36000000,
         httpOnly: false
     });
     res.redirect("/");
 });
-const authMiddleware = (_req: express.Request, res: express.Response, next: express.NextFunction) => {
+const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if(!req.cookies["access_token"] || !req.cookies["refresh_token"]) {
+        res.redirect("/auth");
+        return;
+    }
+    oauth2Client.setCredentials({
+        access_token: req.cookies["access_token"],
+        refresh_token: req.cookies["refresh_token"]
+    });
     res.locals.oauthClient = oauth2Client;
     next();
 }

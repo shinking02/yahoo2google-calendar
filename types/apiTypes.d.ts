@@ -1,6 +1,7 @@
 export interface ImportCalResponse {
     error: string,
-    events: Event[]
+    events: Event[],
+    googleCal: GoogleCal[]
 }
 
 export interface Event {
@@ -11,4 +12,9 @@ export interface Event {
     place: string,
     calendar: string,
     color: string
+}
+
+export interface GoogleCal {
+    name: string,
+    id: string
 }

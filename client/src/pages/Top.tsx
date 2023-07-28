@@ -13,7 +13,7 @@ export default function() {
     const [collectDate, setCollectDate] = React.useState<boolean>(false);
     const [isLogin, setIsLogin] = React.useState<boolean>(false);
     const [importing, setImporting] = React.useState<boolean>(false);
-    const [importError, setImportError] = React.useState<string>("");
+    const [calResponse, setCalResponse] = React.useState<apiType.ImportCalResponse | null>(null);
     useEffect(() => {
         const existAccessToken = document.cookie.includes("access_token");
         setIsLogin(existAccessToken);
@@ -30,10 +30,8 @@ export default function() {
     const importHandler = async() => {
         setImporting(true);
         const response = await post("/importCal", { from: fromDate, to: toDate }) as apiType.ImportCalResponse;
-        localStorage.setItem("yahoo-calendar-data", JSON.stringify(response));
-        if(response.error) {
-            setImportError(response.error);
-        }
+        setCalResponse(response);
+        console.log(response);
         setImporting(false);
     }
     return (
@@ -92,10 +90,25 @@ export default function() {
                 >
                     インポート
                 </LoadingButton>
-                {importError && 
-                    <Alert severity="error" sx={{ mt: 1 }}>{importError}</Alert>                
+                {calResponse?.error && 
+                    <Alert severity="error" sx={{ mt: 1 }}>{calResponse.error}</Alert>                
+                }
+                {calResponse && !calResponse.error &&
+                    <Alert severity="success" sx={{ mt: 1 }}>インポート成功！</Alert>
                 }
             </Box>
+            {calResponse && calResponse.events && calResponse.events.length > 0 &&
+                <>
+                    <Box sx={{ color: "text.secondary", fontSize: 20, fontWeight: "bold" }}>エクスポート</Box>
+                    <Box sx={{
+                        width: 480,
+                        mx: "auto",
+                        display: "flex",
+                        flexDirection: "column",
+                    }}>
+                    </Box>
+                </>
+            }
         </>
     );
 }
