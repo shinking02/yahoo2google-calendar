@@ -26,7 +26,7 @@ app.use("/public", express.static(path.resolve(__dirname, "..", "public")));
 app.get("/auth", (_req, res) => {
     const authorizeUrl = oauth2Client.generateAuthUrl({
         access_type: "offline",
-        scope: "https://www.googleapis.com/auth/calendar",
+        scope: ["https://www.googleapis.com/auth/calendar", "https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"],
         prompt: "consent"
     });
     res.redirect(authorizeUrl);

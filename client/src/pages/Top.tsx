@@ -1,4 +1,4 @@
-import {  Box, Alert, FormGroup, FormControlLabel, Checkbox } from "@mui/material";
+import {  Box, Alert, FormGroup, FormControlLabel, Checkbox, Avatar, Chip } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -11,16 +11,17 @@ export default function() {
     const [fromDate, setFromDate] = React.useState<dayjs.Dayjs | null>(dayjs().subtract(1, "month"));
     const [toDate, setToDate] = React.useState<dayjs.Dayjs | null>(dayjs());
     const [collectDate, setCollectDate] = React.useState<boolean>(false);
-    const [isLogin, setIsLogin] = React.useState<boolean>(false);
+    const [login, setLogin] = React.useState<apiType.LoginStatus | null>(null);
     const [importing, setImporting] = React.useState<boolean>(false);
     const [importResponse, setimportResponse] = React.useState<apiType.ImportResponse | null>(null);
     const [selectedCalendars, setSelectedCarendars] = React.useState<string[]>([]);
     const [exporting, setExporting] = React.useState<boolean>(false);
     const [exportResponse, setExportResponse] = React.useState<apiType.ExportResponse | null>(null);
     useEffect(() => {
-        const existAccessToken = document.cookie.includes("access_token");
-        const existRefreshToken = document.cookie.includes("refresh_token");
-        setIsLogin(existAccessToken && existRefreshToken);        
+        (async () => {
+            const response = await post("/loginStatus");
+            setLogin(response);
+        })();
         checkDate();
     },[]);
     useEffect(() => {checkDate()}, [fromDate, toDate]);
@@ -55,13 +56,20 @@ export default function() {
                 display: "flex",
                 flexDirection: "column",
             }}>
-                <Alert
-                    severity={isLogin ? "success" : "error"}
-                    sx={{ mt: 1 }}
-                >
-                    {isLogin ? "ログイン済みです!" : " ログインしてください"}
-                </Alert> 
-                <LoadingButton variant="outlined" href="/auth" sx={{ my: 1, mx: "auto", width: 160 }}>ログイン</LoadingButton>
+                {login && login.isLogin
+                    ?
+                        <>
+                            <Box sx={{mx: "auto"}} >
+                                <Chip
+                                    avatar={<Avatar src={login.iconPath} />}
+                                    label={login.email}
+                                />
+                            </Box>
+                            <LoadingButton variant="outlined" href="/auth" sx={{ my: 1, mx: "auto", width: 160 }}>切り替える</LoadingButton>
+                        </>
+                    :
+                        <LoadingButton variant="outlined" href="/auth" sx={{ my: 1, mx: "auto", width: 160 }}>ログイン</LoadingButton>
+                }
             </Box>
             <Box sx={{ color: "text.secondary", fontSize: 20, fontWeight: "bold" }}>期間</Box>
             <Box sx={{
@@ -96,7 +104,7 @@ export default function() {
                 <LoadingButton
                     variant="outlined"
                     sx={{ my: 1, mx: "auto", width: 160 }}
-                    disabled={!collectDate || !isLogin}
+                    disabled={!collectDate || !login?.isLogin}
                     loading={importing}
                     onClick={importHandler}
                 >
@@ -161,9 +169,19 @@ export default function() {
                             エクスポート
                         </LoadingButton>
                         {exportResponse && (
-                            <Alert severity={exportResponse.error ? "error" : "success"} sx={{ mt: 1 }}>
-                                {exportResponse.message}
-                            </Alert>
+                            <>
+                                <Alert severity={exportResponse.error ? "error" : "success"} sx={{ mt: 1 }}>
+                                    {exportResponse.message}
+                                </Alert>
+                                {!exportResponse?.error &&
+                                    <LoadingButton
+                                        variant="outlined"
+                                        sx={{ my: 1, mx: "auto", width: 160 }}
+                                        href="https://calendar.google.com/calendar/"
+                                    >
+                                        Googleカレンダー
+                                    </LoadingButton>}
+                            </>
                         )}
                     </Box>
                 </>
