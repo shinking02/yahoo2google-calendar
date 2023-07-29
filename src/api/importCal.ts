@@ -1,5 +1,5 @@
 import express from "express";
-import { Builder, By, Capabilities, Key, until, WebDriver, WebElement } from "selenium-webdriver";
+import { Builder, By, Capabilities, until, WebDriver } from "selenium-webdriver";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import * as apiTypes from "../../types/apiTypes";
@@ -18,6 +18,7 @@ export default async function importCal(req: express.Request, res: express.Respo
     try {
         await driver.get("https://login.yahoo.co.jp/config/login?.src=yc&.done=https%3A%2F%2Fcalendar.yahoo.co.jp%2F");
         const listButton = await driver.wait(until.elementLocated(By.className("js-ToolBar__viewList--list")), 120000);
+        driver.manage().window().minimize();
         await listButton.click();
         const now = dayjs();
         const nextClickCount = (dayjs(to).year() - now.year()) * 12 + dayjs(to).month() - now.month();
@@ -115,15 +116,16 @@ export default async function importCal(req: express.Request, res: express.Respo
         }
         await driver.close();
         res.json({
-            error: "",
+            error: false,
+            message: "インポート成功!",
             events: calData,
             calList: Object.values(calendars)
         });
     } catch(error) {
         console.log(error);
         res.json({
-            error: "エラーが発生しました",
-            events: [],
+            error: true,
+            message: "エラーが発生しました"
         })
     }
 }

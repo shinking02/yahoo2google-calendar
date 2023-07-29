@@ -13,12 +13,14 @@ export default function() {
     const [collectDate, setCollectDate] = React.useState<boolean>(false);
     const [isLogin, setIsLogin] = React.useState<boolean>(false);
     const [importing, setImporting] = React.useState<boolean>(false);
-    const [calResponse, setCalResponse] = React.useState<apiType.ImportCalResponse | null>(null);
+    const [importResponse, setimportResponse] = React.useState<apiType.ImportResponse | null>(null);
     const [selectedCalendars, setSelectedCarendars] = React.useState<string[]>([]);
+    const [exporting, setExporting] = React.useState<boolean>(false);
+    const [exportResponse, setExportResponse] = React.useState<apiType.ExportResponse | null>(null);
     useEffect(() => {
         const existAccessToken = document.cookie.includes("access_token");
         const existRefreshToken = document.cookie.includes("refresh_token");
-        setIsLogin(existAccessToken && existAccessToken);
+        setIsLogin(existAccessToken && existRefreshToken);        
         checkDate();
     },[]);
     useEffect(() => {checkDate()}, [fromDate, toDate]);
@@ -31,10 +33,18 @@ export default function() {
     };
     const importHandler = async() => {
         setImporting(true);
-        const response = await post("/importCal", { from: fromDate, to: toDate }) as apiType.ImportCalResponse;
-        setCalResponse(response);
-        console.log(response);
+        const response = await post("/importCal", { from: fromDate, to: toDate }) as apiType.ImportResponse;
         setImporting(false);
+        setimportResponse(response);
+        const initialCalendars = response.calList.map((cal) => cal.name) || [];
+        setSelectedCarendars(initialCalendars);
+        console.log(response);
+    }
+    const exportHandler = async() => {
+        setExporting(true);
+        const response = await post("/exportCal");
+        setExporting(false);
+        setExportResponse(response);
     }
     return (
         <>
@@ -92,24 +102,23 @@ export default function() {
                 >
                     インポート
                 </LoadingButton>
-                {calResponse?.error && 
-                    <Alert severity="error" sx={{ mt: 1 }}>{calResponse.error}</Alert>                
-                }
-                {calResponse && !calResponse.error &&
-                    <Alert severity="success" sx={{ mt: 1 }}>インポート成功！</Alert>
-                }
+                {importResponse && (
+                    <Alert severity={importResponse.error ? "error" : "success"} sx={{ mt: 1 }}>
+                        {importResponse.message}
+                    </Alert>
+                )}
             </Box>
-            {calResponse && calResponse.events && calResponse.events.length > 0 &&
+            {importResponse && importResponse.events && importResponse.events.length > 0 &&
                 <>
                     <Box sx={{ color: "text.secondary", fontSize: 20, fontWeight: "bold", mt: 2}}>エクスポート</Box>
                     <Box sx={{
-                        width: 380,
+                        width: 480,
                         mx: "auto",
                         display: "flex",
                         flexDirection: "column",
                     }}>
-                        <FormGroup>
-                            {calResponse.calList.map(cal => {
+                        <FormGroup sx={{ ml: 10 }}>
+                            {importResponse.calList.map(cal => {
                                 return (
                                     <FormControlLabel
                                         key={cal.name}
@@ -124,7 +133,20 @@ export default function() {
                                                 }}
                                             />
                                         }
-                                        label={`${cal.name} (${cal.count}件)`}
+                                        label={
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                              <span
+                                                style={{
+                                                  width: 16,
+                                                  height: 16,
+                                                  borderRadius: '50%',
+                                                  background: cal.color,
+                                                  marginRight: 8,
+                                                }}
+                                              />
+                                              {`${cal.name} (${cal.count}件)`}
+                                            </div>
+                                          }
                                     />
                                 )
                             })}
@@ -132,12 +154,17 @@ export default function() {
                         <LoadingButton
                             variant="outlined"
                             sx={{ my: 1, mx: "auto", width: 160 }}
-                            onClick={() => {
-                                console.log(selectedCalendars)
-                            }}
+                            loading={exporting}
+                            onClick={exportHandler}
+                            disabled={!selectedCalendars.length}
                         >
                             エクスポート
                         </LoadingButton>
+                        {exportResponse && (
+                            <Alert severity={exportResponse.error ? "error" : "success"} sx={{ mt: 1 }}>
+                                {exportResponse.message}
+                            </Alert>
+                        )}
                     </Box>
                 </>
             }

@@ -1,7 +1,13 @@
-export interface ImportCalResponse {
-    error: string,
+export interface ImportResponse {
+    error: boolean,
+    message: string,
     events: Event[],
     calList: YahooCal[]
+}
+
+export interface ExportResponse {
+    error: boolean,
+    message: string
 }
 
 export interface Event {
