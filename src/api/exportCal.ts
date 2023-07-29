@@ -19,7 +19,7 @@ export default async function exportCal(req: express.Request, res: express.Respo
             const calEvents = (events as apiTypes.Event[]).filter(e => e.calendar === calName);
             for(const event of calEvents) {
                 if(event.allDay) {
-                    calendar.events.insert({
+                    await calendar.events.insert({
                         calendarId: newCalId,
                         requestBody: {
                             summary: event.name,
@@ -35,7 +35,7 @@ export default async function exportCal(req: express.Request, res: express.Respo
                         }
                     })
                 } else {
-                    calendar.events.insert({
+                    await calendar.events.insert({
                         calendarId: newCalId,
                         requestBody: {
                             summary: event.name,
@@ -51,7 +51,7 @@ export default async function exportCal(req: express.Request, res: express.Respo
                         }
                     })
                 }
-                
+                console.log("exported " + event.name);
             }
         }
         res.send({
