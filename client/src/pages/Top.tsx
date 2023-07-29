@@ -17,7 +17,8 @@ export default function() {
     const [selectedCalendars, setSelectedCarendars] = React.useState<string[]>([]);
     useEffect(() => {
         const existAccessToken = document.cookie.includes("access_token");
-        setIsLogin(existAccessToken);
+        const existRefreshToken = document.cookie.includes("refresh_token");
+        setIsLogin(existAccessToken && existAccessToken);
         checkDate();
     },[]);
     useEffect(() => {checkDate()}, [fromDate, toDate]);

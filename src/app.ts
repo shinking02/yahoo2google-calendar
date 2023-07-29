@@ -26,7 +26,8 @@ app.use("/public", express.static(path.resolve(__dirname, "..", "public")));
 app.get("/auth", (_req, res) => {
     const authorizeUrl = oauth2Client.generateAuthUrl({
         access_type: "offline",
-        scope: "https://www.googleapis.com/auth/calendar"
+        scope: "https://www.googleapis.com/auth/calendar",
+        prompt: "consent"
     });
     res.redirect(authorizeUrl);
 });
@@ -35,11 +36,11 @@ app.get("/auth/callback", async(req: express.Request, res: express.Response) => 
     const tokens = (await oauth2Client.getToken(code)).tokens;
     oauth2Client.setCredentials(tokens);
     res.cookie("access_token", tokens.access_token, {
-        maxAge: 36000000,
+        maxAge: 3600000,
         httpOnly: false
     });
     res.cookie("refresh_token", tokens.refresh_token, {
-        maxAge: 36000000,
+        maxAge: 3600000,
         httpOnly: false
     });
     res.redirect("/");
