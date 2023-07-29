@@ -9,13 +9,15 @@ export interface ExportResponse {
     error: boolean;
     message: string;
 }
+
 export interface LoginStatus {
     isLogin: boolean;
     email: string;
     iconPath: string;
 }
+
 export interface Event {
-    start: string; //YYYYMMDDHHmm
+    start: string; //IS8601 YYYY-MM-DDTHH:mm:ss
     end: string;
     allDay: boolean;
     name: string;

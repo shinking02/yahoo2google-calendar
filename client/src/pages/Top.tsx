@@ -43,7 +43,8 @@ export default function() {
     }
     const exportHandler = async() => {
         setExporting(true);
-        const response = await post("/exportCal");
+        const events = importResponse?.events.filter(e => selectedCalendars.includes(e.calendar));
+        const response = await post("/exportCal", { events, calList: selectedCalendars });
         setExporting(false);
         setExportResponse(response);
     }
