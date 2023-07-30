@@ -1,6 +1,6 @@
 import express from "express";
 import { OAuth2Client } from "googleapis-common";
-import { google } from "googleapis";
+import { calendar_v3, google } from "googleapis";
 import * as apiTypes from "../../types/apiTypes"
 
 export default async function exportCal(req: express.Request, res: express.Response) {
@@ -18,40 +18,28 @@ export default async function exportCal(req: express.Request, res: express.Respo
             const newCalId = newCal.data.id || "";
             const calEvents = (events as apiTypes.Event[]).filter(e => e.calendar === calName);
             for(const event of calEvents) {
+                const requestBody: calendar_v3.Schema$Event = {
+                    summary: event.name,
+                    location: event.place,
+                    start: {
+                        timeZone: "Asia/Tokyo"
+                    },
+                    end: {
+                        timeZone: "Asia/Tokyo"
+                    }
+                };
                 if(event.allDay) {
-                    await calendar.events.insert({
-                        calendarId: newCalId,
-                        requestBody: {
-                            summary: event.name,
-                            location: event.place,
-                            start: {
-                                date: event.start,
-                                timeZone: "Asia/Tokyo"
-                            },
-                            end: {
-                                date: event.end,
-                                timeZone: "Asia/Tokyo"
-                            }
-                        }
-                    })
+                    requestBody.start!.date = event.start;
+                    requestBody.end!.date = event.end;
                 } else {
-                    await calendar.events.insert({
-                        calendarId: newCalId,
-                        requestBody: {
-                            summary: event.name,
-                            location: event.place,
-                            start: {
-                                dateTime: event.start,
-                                timeZone: "Asia/Tokyo"
-                            },
-                            end: {
-                                dateTime: event.end,
-                                timeZone: "Asia/Tokyo"
-                            }
-                        }
-                    })
+                    requestBody.start!.dateTime = event.start;
+                    requestBody.end!.dateTime = event.end;
                 }
-                console.log("exported " + event.name);
+                await calendar.events.insert({
+                    calendarId: newCalId,
+                    requestBody
+                })
+                console.log(event.name + " is exported to " + calName);
             }
         }
         res.send({
