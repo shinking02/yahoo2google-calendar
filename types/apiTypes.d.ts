@@ -17,7 +17,7 @@ export interface LoginStatus {
 }
 
 export interface Event {
-    start: string; //IS8601 YYYY-MM-DDTHH:mm:ss
+    start: string; //ISO8601 YYYY-MM-DDTHH:mm:ss
     end: string;
     allDay: boolean;
     name: string;

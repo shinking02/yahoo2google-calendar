@@ -91,7 +91,7 @@ export default async function importCal(req: express.Request, res: express.Respo
                                 const [hour, minute] = timeMatches[0].split(":")
                                 const endDate = month.padStart(2, "0") + "-"+ day.padStart(2, "0");
                                 const endString = pageDate.year().toString() + "-" + endDate + "T" + hour + ":"+ minute + ":00";
-                                if(Number(endString.slice(0, 10).replace(/-/g, "")) - Number(eventStart.slice(0, 10).replace(/-/g, "")) < 0) {
+                                if(dayjs(eventStart).isAfter(dayjs(endString))) {
                                     return pageDate.add(1, "year").year().toString() + "-" + endDate + "T" + hour + ":" + minute + ":00";
                                 }
                                 return endString;
