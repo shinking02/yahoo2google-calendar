@@ -111,7 +111,7 @@ export default async function importCal(req: express.Request, res: express.Respo
                         calendar: calText,
                         allDay: false
                     });
-                    console.log("imported " + name);
+                    console.log(`imported ${name} (${pageDate.year().toString()+ "-" + startDate})`);
                 }
             }
             await prevButton.click();
