@@ -76,7 +76,7 @@ export default async function importCal(req: express.Request, res: express.Respo
                             calendar: calText,
                             allDay: true
                         });
-                        console.log("imported " + name);
+                        console.log(`imported ${name} (${pageDate.year().toString()+ "-" + startDate})`);
                         continue;
                     }
                     const eventStart = pageDate.year().toString() + "-" + startDate + "T" + dateText.slice(0, 2) + ":"+ dateText.slice(3, 5) + ":00";

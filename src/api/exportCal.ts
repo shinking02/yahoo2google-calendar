@@ -21,12 +21,8 @@ export default async function exportCal(req: express.Request, res: express.Respo
                 const requestBody: calendar_v3.Schema$Event = {
                     summary: event.name,
                     location: event.place,
-                    start: {
-                        timeZone: "Asia/Tokyo"
-                    },
-                    end: {
-                        timeZone: "Asia/Tokyo"
-                    }
+                    start: {},
+                    end: {}
                 };
                 if(event.allDay) {
                     requestBody.start!.date = event.start;
@@ -34,12 +30,14 @@ export default async function exportCal(req: express.Request, res: express.Respo
                 } else {
                     requestBody.start!.dateTime = event.start;
                     requestBody.end!.dateTime = event.end;
+                    requestBody.end!.timeZone = "Asia/Tokyo";
+                    requestBody.start!.timeZone = "Asia/Tokyo";
                 }
                 await calendar.events.insert({
                     calendarId: newCalId,
                     requestBody
                 })
-                console.log(event.name + " is exported to " + calName);
+                console.log(`${event.name} is exported to ${calName} (${event.start})`);
             }
         }
         res.send({
