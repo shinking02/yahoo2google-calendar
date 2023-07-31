@@ -4,7 +4,7 @@ import express from "express";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { google } from "googleapis";
-import { OAuth2Client } from "google-auth-library";
+import bodyParser from "body-parser";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -19,6 +19,7 @@ const oauth2Client = new OAuth2(
 );
 
 app.use(cookieParser());
+app.use(bodyParser.json({ limit: "10mb" }));
 app.use(express.json());
 app.use("/client/build", express.static(path.resolve(__dirname, "..", "client/build")));
 app.use("/public", express.static(path.resolve(__dirname, "..", "public")));
