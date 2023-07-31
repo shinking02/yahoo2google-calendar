@@ -25,12 +25,12 @@ export default async function importCal(req: express.Request, res: express.Respo
         const prevClickCount = (now.year() - dayjs(from).year()) * 12 + now.month() - dayjs(from).month() + nextClickCount;
         const calData: apiTypes.Event[] = [];
         const calendars: { [name: string]: apiTypes.YahooCal } = {};
+        const prevButton = await driver.findElement(By.className("bc-button-prev"));
+        const nextButton = await driver.findElement(By.className("bc-button-next"));
         for(let i = 0; i < nextClickCount; i++) {
-            const nextButton = await driver.findElement(By.className("bc-button-next"));
             await nextButton.click();
         }
         for(let i = 0; i < prevClickCount + 1; i++) {
-            const prevButton = await driver.findElement(By.className("bc-button-prev"));
             const ym = await driver.findElement(By.className("month")).getText();
             const mIndex = ym.indexOf("月");
             const pageDate = dayjs(ym.slice(0, mIndex + 1), "YYYY年M月");
@@ -38,7 +38,7 @@ export default async function importCal(req: express.Request, res: express.Respo
                 await prevButton.click();
                 continue;
             }
-            await driver.sleep(1000); //list-rowが全行表示されていない場合があるのでsleepで待機
+            await driver.sleep(600); //list-rowが全行表示されていない場合があるのでsleepで待機
             const rows = await driver.findElements(By.css(".list-table.list-row"));
             let startDate: string = ""; // MMDD
             for(const row of rows) {
