@@ -55,10 +55,9 @@ export default async function importCal(req: express.Request, res: express.Respo
                     const dateText = await row.findElement(By.className("list-event-date")).getText();
                     const name = await row.findElement(By.className("list-event-title")).getText();
                     const place = await row.findElement(By.className("list-event-place")).getText();
-                    const calElment = await row.findElement(By.className("list-event-cal"));
-                    const calText = await calElment.getText();
+                    const calText = await row.findElement(By.className("list-event-cal")).getText();
                     if(!calendars[calText]) {
-                        const calColor = await calElment.findElement(By.className("color-border")).getCssValue("border-left-color");
+                        const calColor = await row.findElement(By.className("color-border")).getCssValue("border-left-color");
                         calendars[calText] = {
                             name: calText,
                             color: calColor,
