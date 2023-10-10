@@ -1,6 +1,6 @@
 # yahoo2google-calendar
 
-Yahooカレンダーのエクスポート機能が終了したため作成しました。 [参考](https://support.yahoo-net.jp/PccCalendar/s/article/H000013400)
+Yahooカレンダーのエクスポート機能が終了したため作成しました。 [参考](https://support.yahoo-net.jp/PccCalendar/s/article/H000013400)  
 このツールを使用することでYahooカレンダーの予定をGoogleカレンダーに移行することができます。
 
 ## 動作画面
@@ -8,7 +8,8 @@ Yahooカレンダーのエクスポート機能が終了したため作成しま
 
 ## 起動方法
 ### .envの用意
-.env.exampleを参考に、.envファイルを作成してください
+.env.exampleを参考に、.envファイルを作成してください。  
+実行にはOAuth同意画面とGoogleカレンダーAPIが有効になっているGCPのプロジェクトが必要です。
 ```
 PORT=
 GOOGLE_CLIENT_ID=
